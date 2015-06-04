@@ -80,7 +80,8 @@ class RegisterResponseMixin(object):
         if values is not None:
             self.registers = values
 
-    def __len__(self):
+    @property
+    def count(self):
         '''
         Return the length of the register block.
         '''
@@ -154,7 +155,7 @@ class ReadRegistersResponseBase(ModbusResponse, RegisterResponseMixin):
 
         :returns: The encoded packet
         '''
-        return '%c%s' % (len(self) * 2, self.raw_registers)
+        return '%c%s' % (self.count * 2, self.raw_registers)
 
     def decode(self, data):
         ''' Decode a register response packet
@@ -178,7 +179,7 @@ class ReadRegistersResponseBase(ModbusResponse, RegisterResponseMixin):
 
         :returns: A string representation of the instance
         '''
-        return "ReadRegisterResponse (%d)" % len(self)
+        return "ReadRegisterResponse (%d)" % self.count
 
 
 class ReadHoldingRegistersRequest(ReadRegistersRequestBase):
@@ -403,7 +404,7 @@ class ReadWriteMultipleRegistersResponse(ModbusResponse, RegisterResponseMixin):
 
         :returns: The encoded packet
         '''
-        return '%c%s' % (len(self) * 2, self.raw_registers)
+        return '%c%s' % (self.count * 2, self.raw_registers)
 
     def decode(self, data):
         ''' Decode the register response packet
@@ -424,7 +425,7 @@ class ReadWriteMultipleRegistersResponse(ModbusResponse, RegisterResponseMixin):
 
         :returns: A string representation of the instance
         '''
-        return "ReadWriteNRegisterResponse (%d)" % len(self)
+        return "ReadWriteNRegisterResponse (%d)" % self.count
 
 #---------------------------------------------------------------------------#
 # Exported symbols
