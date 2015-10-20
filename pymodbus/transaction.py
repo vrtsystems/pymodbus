@@ -61,7 +61,10 @@ class ModbusTransactionManager(object):
         while retries > 0:
             try:
                 self.client.connect()
-                self.client._send(self.client.framer.buildPacket(request))
+                frame = self.client.framer.buildPacket(request)
+                if _logger.isEnabledFor(logging.DEBUG):
+                    _logger.debug("send: " + " ".join([hex(ord(x)) for x in frame]))
+                self.client._send(frame)
                 # I need to fix this to read the header and the result size,
                 # as this may not read the full result set, but right now
                 # it should be fine...
