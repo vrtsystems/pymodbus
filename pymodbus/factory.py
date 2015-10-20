@@ -237,7 +237,7 @@ class ClientDecoder(IModbusDecoder):
         _logger.debug("Factory Response[%d]%s",
                 function_code,
                 (': ' + ' '.join([hex(ord(b)) for b in data[1:]])) \
-                        if _logger.IsEnabledFor(logging.DEBUG) else '')
+                        if _logger.isEnabledFor(logging.DEBUG) else '')
         response = self.__lookup.get(function_code, lambda: None)()
         if function_code > 0x80:
             code = function_code & 0x7f  # strip error portion
