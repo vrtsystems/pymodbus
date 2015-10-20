@@ -221,8 +221,8 @@ class FifoTransactionManager(ModbusTransactionManager):
         '''
         _logger.debug("getting transaction %s" % str(tid))
         t = self.transactions.pop(0) if self.transactions else None
-        _logger.debug('got %s, %d transactions in queue',
-                t, len(self.transactions))
+        _logger.debug('got %s(#%d), %d transactions in queue',
+                t, t.transaction_id if t else -1, len(self.transactions))
         return t
 
     def delTransaction(self, tid):
