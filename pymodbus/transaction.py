@@ -208,8 +208,9 @@ class FifoTransactionManager(ModbusTransactionManager):
         :param tid: The overloaded transaction id to use
         '''
         tid = tid if tid != None else request.transaction_id
-        _logger.debug("adding transaction %d" % tid)
+        _logger.debug("adding transaction %d: %s", tid, request)
         self.transactions.append(request)
+        _logger.debug('%d transactions in queue', len(self.transactions))
 
     def getTransaction(self, tid):
         ''' Returns a transaction matching the referenced tid
@@ -219,7 +220,10 @@ class FifoTransactionManager(ModbusTransactionManager):
         :param tid: The transaction to retrieve
         '''
         _logger.debug("getting transaction %s" % str(tid))
-        return self.transactions.pop(0) if self.transactions else None
+        t = self.transactions.pop(0) if self.transactions else None
+        _logger.debug('got %s, %d transactions in queue',
+                t, len(self.transactions))
+        return t
 
     def delTransaction(self, tid):
         ''' Removes a transaction matching the referenced tid
