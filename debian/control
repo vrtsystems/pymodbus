@@ -1,0 +1,16 @@
+Source: pymodbus
+Maintainer: VRT Systems <support@vrt.com.au>
+Section: python
+Priority: optional
+Build-Depends: python-setuptools (>= 0.6b3), python-all (>= 2.6.6-3), debhelper (>= 7)
+Standards-Version: 3.9.1
+
+Package: python-pymodbus
+Architecture: all
+Depends: ${misc:Depends}, ${python:Depends}
+Description: A fully featured modbus protocol stack in python
+ .
+     Pymodbus aims to be a fully implemented modbus protocol stack implemented
+     using twisted.  Its orignal goal was to allow simulation of thousands of
+     modbus devices on a single machine for monitoring software testing.
+ .
