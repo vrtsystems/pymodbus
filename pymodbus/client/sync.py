@@ -55,7 +55,7 @@ class BaseModbusClient(ModbusClientMixin):
         '''
         pass
 
-    def _send(self, request):
+    def _send(self, request, timeout=None):
         ''' Sends data on the underlying socket
 
         :param request: The encoded request to send
@@ -63,7 +63,7 @@ class BaseModbusClient(ModbusClientMixin):
         '''
         raise NotImplementedException("Method not implemented by derived class")
 
-    def _recv(self, size):
+    def _recv(self, size, timeout=None):
         ''' Reads data from the underlying descriptor
 
         :param size: The number of bytes to read
@@ -74,14 +74,14 @@ class BaseModbusClient(ModbusClientMixin):
     #-----------------------------------------------------------------------#
     # Modbus client methods
     #-----------------------------------------------------------------------#
-    def execute(self, request=None):
+    def execute(self, request=None, timeout=None):
         '''
         :param request: The request to process
         :returns: The result of the request execution
         '''
         if not self.connect():
             raise ConnectionException("Failed to connect[%s]" % (self.__str__()))
-        return self.transaction.execute(request)
+        return self.transaction.execute(request, timeout=timeout)
 
     #-----------------------------------------------------------------------#
     # The magic methods
@@ -156,7 +156,7 @@ class ModbusTcpClient(BaseModbusClient):
             self.socket.close()
         self.socket = None
 
-    def _send(self, request):
+    def _send(self, request, timeout=None):
         ''' Sends data on the underlying socket
 
         :param request: The encoded request to send
@@ -164,11 +164,18 @@ class ModbusTcpClient(BaseModbusClient):
         '''
         if not self.socket:
             raise ConnectionException(self.__str__())
-        if request:
-            return self.socket.send(request)
+        try:
+            if timeout is not None:
+                old_timeout = self.socket.gettimeout()
+                self.socket.settimeout(timeout)
+            if request:
+                return self.socket.send(request)
+        finally:
+            if timeout is not None:
+                self.socket.settimeout(old_timeout)
         return 0
 
-    def _recv(self, size):
+    def _recv(self, size, timeout=None):
         ''' Reads data from the underlying descriptor
 
         :param size: The number of bytes to read
@@ -176,7 +183,14 @@ class ModbusTcpClient(BaseModbusClient):
         '''
         if not self.socket:
             raise ConnectionException(self.__str__())
-        return self.socket.recv(size)
+        try:
+            if timeout is not None:
+                old_timeout = self.socket.gettimeout()
+                self.socket.settimeout(timeout)
+            return self.socket.recv(size)
+        finally:
+            if timeout is not None:
+                self.socket.settimeout(old_timeout)
 
     def __str__(self):
         ''' Builds a string representation of the connection
@@ -242,7 +256,7 @@ class ModbusUdpClient(BaseModbusClient):
         '''
         self.socket = None
 
-    def _send(self, request):
+    def _send(self, request, timeout=None):
         ''' Sends data on the underlying socket
 
         :param request: The encoded request to send
@@ -250,11 +264,20 @@ class ModbusUdpClient(BaseModbusClient):
         '''
         if not self.socket:
             raise ConnectionException(self.__str__())
-        if request:
-            return self.socket.sendto(request, (self.host, self.port))
+
+        try:
+            if timeout is not None:
+                old_timeout = self.socket.gettimeout()
+                self.socket.settimeout(timeout)
+            if request:
+                return self.socket.sendto(request, (self.host, self.port))
+        finally:
+            if timeout is not None:
+                self.socket.settimeout(old_timeout)
+
         return 0
 
-    def _recv(self, size):
+    def _recv(self, size, timeout=None):
         ''' Reads data from the underlying descriptor
 
         :param size: The number of bytes to read
@@ -262,7 +285,15 @@ class ModbusUdpClient(BaseModbusClient):
         '''
         if not self.socket:
             raise ConnectionException(self.__str__())
-        return self.socket.recvfrom(size)[0]
+
+        try:
+            if timeout is not None:
+                old_timeout = self.socket.gettimeout()
+                self.socket.settimeout(timeout)
+            return self.socket.recvfrom(size)[0]
+        finally:
+            if timeout is not None:
+                self.socket.settimeout(old_timeout)
 
     def __str__(self):
         ''' Builds a string representation of the connection
@@ -346,7 +377,7 @@ class ModbusSerialClient(BaseModbusClient):
             self.socket.close()
         self.socket = None
 
-    def _send(self, request):
+    def _send(self, request, timeout=None):
         ''' Sends data on the underlying socket
 
         If receive buffer still holds some data then flush it.
@@ -376,12 +407,19 @@ class ModbusSerialClient(BaseModbusClient):
             except NotImplementedError:
                 pass
 
-            size = self.socket.write(request)
+            try:
+                if timeout is not None:
+                    old_timeout = self.socket.write_timeout
+                    self.socket.write_timeout = timeout
+                size = self.socket.write(request)
+            finally:
+                if timeout is not None:
+                    self.socket.write_timeout = old_timeout
             self._last_frame_end = time.time()
             return size
         return 0
 
-    def _recv(self, size):
+    def _recv(self, size, timeout=None):
         ''' Reads data from the underlying descriptor
 
         :param size: The number of bytes to read
@@ -389,7 +427,14 @@ class ModbusSerialClient(BaseModbusClient):
         '''
         if not self.socket:
             raise ConnectionException(self.__str__())
-        result = self.socket.read(size)
+        try:
+            if timeout is not None:
+                old_timeout = self.socket.timeout
+                self.socket.timeout = timeout
+            result = self.socket.read(size)
+        finally:
+            if timeout is not None:
+                self.socket.timeout = old_timeout
         self._last_frame_end = time.time()
         return result
 

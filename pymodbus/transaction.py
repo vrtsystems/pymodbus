@@ -4,6 +4,7 @@ Collection of transaction based abstractions
 import sys
 import struct
 import socket
+import time
 from binascii import b2a_hex, a2b_hex
 
 from pymodbus.exceptions import ModbusIOException, NotImplementedException
@@ -50,10 +51,14 @@ class ModbusTransactionManager(object):
         self.retry_on_empty = kwargs.get('retry_on_empty', Defaults.RetryOnEmpty)
         self.retries = kwargs.get('retries', Defaults.Retries)
 
-    def execute(self, request):
+    def execute(self, request, timeout=None):
         ''' Starts the producer to send the next request to
         consumer.write(Frame(request))
         '''
+        if timeout is not None:
+            deadline = time.time() + timeout
+        else:
+            deadline = None
         retries = self.retries
         request.transaction_id = self.getNextTID()
         _logger.debug("Running transaction %d" % request.transaction_id)
@@ -61,7 +66,10 @@ class ModbusTransactionManager(object):
         while retries > 0:
             try:
                 self.client.connect()
-                self.client._send(self.client.framer.buildPacket(request))
+                if deadline is not None:
+                    timeout = deadline - time.time()
+                self.client._send(self.client.framer.buildPacket(request),
+                        timeout=timeout)
                 try:
                     recvsize = self.client.framer.getResponseSize(request)
                 except NotImplementedException:
@@ -70,10 +78,12 @@ class ModbusTransactionManager(object):
                 # TODO: read first only as much as needed to check Modbus
                 # exception and then all remaining bytes. Otherwise
                 # exception always takes _timeout_ seconds.
+                if deadline is not None:
+                    timeout = deadline - time.time()
                 if recvsize:
-                    result = self.client._recv(recvsize)
+                    result = self.client._recv(recvsize, timeout=timeout)
                 else:
-                    result = self.client._recv(1024)
+                    result = self.client._recv(1024, timeout=timeout)
 
                 if not result and self.retry_on_empty:
                     retries -= 1
