@@ -12,7 +12,7 @@ from pymodbus.register_write_message import *
 #---------------------------------------------------------------------------#
 class MockClient(ModbusClientMixin):
 
-    def execute(self, request):
+    def execute(self, request, timeout=None):
         return request
 
 #---------------------------------------------------------------------------#

@@ -39,8 +39,9 @@ class ModbusClientMixin(object):
         :param unit: The slave unit this request is targeting
         :returns: A deferred response handle
         '''
+        timeout = kwargs.pop('timeout', None)
         request = ReadCoilsRequest(address, count, **kwargs)
-        return self.execute(request)
+        return self.execute(request, timeout=timeout)
 
     def read_discrete_inputs(self, address, count=1, **kwargs):
         '''
@@ -50,8 +51,9 @@ class ModbusClientMixin(object):
         :param unit: The slave unit this request is targeting
         :returns: A deferred response handle
         '''
+        timeout = kwargs.pop('timeout', None)
         request = ReadDiscreteInputsRequest(address, count, **kwargs)
-        return self.execute(request)
+        return self.execute(request, timeout=timeout)
 
     def write_coil(self, address, value, **kwargs):
         '''
@@ -61,8 +63,9 @@ class ModbusClientMixin(object):
         :param unit: The slave unit this request is targeting
         :returns: A deferred response handle
         '''
+        timeout = kwargs.pop('timeout', None)
         request = WriteSingleCoilRequest(address, value, **kwargs)
-        return self.execute(request)
+        return self.execute(request, timeout=timeout)
 
     def write_coils(self, address, values, **kwargs):
         '''
@@ -72,8 +75,9 @@ class ModbusClientMixin(object):
         :param unit: The slave unit this request is targeting
         :returns: A deferred response handle
         '''
+        timeout = kwargs.pop('timeout', None)
         request = WriteMultipleCoilsRequest(address, values, **kwargs)
-        return self.execute(request)
+        return self.execute(request, timeout=timeout)
 
     def write_register(self, address, value, **kwargs):
         '''
@@ -83,8 +87,9 @@ class ModbusClientMixin(object):
         :param unit: The slave unit this request is targeting
         :returns: A deferred response handle
         '''
+        timeout = kwargs.pop('timeout', None)
         request = WriteSingleRegisterRequest(address, value, **kwargs)
-        return self.execute(request)
+        return self.execute(request, timeout=timeout)
 
     def write_registers(self, address, values, **kwargs):
         '''
@@ -94,8 +99,9 @@ class ModbusClientMixin(object):
         :param unit: The slave unit this request is targeting
         :returns: A deferred response handle
         '''
+        timeout = kwargs.pop('timeout', None)
         request = WriteMultipleRegistersRequest(address, values, **kwargs)
-        return self.execute(request)
+        return self.execute(request, timeout=timeout)
 
     def read_holding_registers(self, address, count=1, **kwargs):
         '''
@@ -105,8 +111,9 @@ class ModbusClientMixin(object):
         :param unit: The slave unit this request is targeting
         :returns: A deferred response handle
         '''
+        timeout = kwargs.pop('timeout', None)
         request = ReadHoldingRegistersRequest(address, count, **kwargs)
-        return self.execute(request)
+        return self.execute(request, timeout=timeout)
 
     def read_input_registers(self, address, count=1, **kwargs):
         '''
@@ -116,8 +123,9 @@ class ModbusClientMixin(object):
         :param unit: The slave unit this request is targeting
         :returns: A deferred response handle
         '''
+        timeout = kwargs.pop('timeout', None)
         request = ReadInputRegistersRequest(address, count, **kwargs)
-        return self.execute(request)
+        return self.execute(request, timeout=timeout)
 
     def readwrite_registers(self, *args, **kwargs):
         '''
@@ -129,8 +137,9 @@ class ModbusClientMixin(object):
         :param unit: The slave unit this request is targeting
         :returns: A deferred response handle
         '''
+        timeout = kwargs.pop('timeout', None)
         request = ReadWriteMultipleRegistersRequest(*args, **kwargs)
-        return self.execute(request)
+        return self.execute(request, timeout=timeout)
 
     def mask_write_register(self, *args, **kwargs):
         '''
@@ -141,8 +150,9 @@ class ModbusClientMixin(object):
         :param unit: The slave unit this request is targeting
         :returns: A deferred response handle
         '''
+        timeout = kwargs.pop('timeout', None)
         request = MaskWriteRegisterRequest(*args, **kwargs)
-        return self.execute(request)
+        return self.execute(request, timeout=timeout)
 
 #---------------------------------------------------------------------------#
 # Exported symbols
