@@ -58,14 +58,68 @@ class ReadBitsResponseBase(ModbusResponse):
         :param values: The requested values to be returned
         '''
         ModbusResponse.__init__(self, **kwargs)
-        self.bits = values or []
+        self._bits = None
+        self._raw_bits = None
+
+        if values is not None:
+            # Is `values` a list of bools or a byte array?
+            if isinstance(values[0], bool):
+                # This is a sequence of bools
+                self._bits = list(values)
+            elif isinstance(values[0], (bytes, int)):
+                # This is a raw bit string
+                self._raw_bits = bytes(values)
+            else:
+                raise TypeError('values not a bytestring or boolean list')
+
+    @property
+    def bits(self):
+        '''
+        Lazily decode and return the bitstring.
+        '''
+        if self._bits is None:
+            self._bits = unpack_bitstring(self._raw_bits or b'')
+        return self._bits
+
+    @bits.setter
+    def bits(self, newbits):
+        '''
+        Replace the data with the given bits
+        '''
+        self._bits = newbits
+        self._raw_bits = None
+        self._byte_count = None
+
+    @property
+    def raw_bits(self):
+        '''
+        Retrieve the raw bitstring for the given bits.
+        '''
+        if self._raw_bits is None:
+            self._raw_bits = pack_bitstring(self._bits or [])
+        return self._raw_bits
+
+    @raw_bits.setter
+    def raw_bits(self, newbits):
+        '''
+        Replace the data with the given bits
+        '''
+        self._raw_bits = newbits
+        self._bits = None
+        self._byte_count = None
+
+    @property
+    def byte_count(self):
+        if self._byte_count is None:
+            self._byte_count = len(self.raw_bits)
+        return self._byte_count
 
     def encode(self):
         ''' Encodes response pdu
 
         :returns: The encoded packet message
         '''
-        result = pack_bitstring(self.bits)
+        result = self.raw_bits
         packet = struct.pack(">B", len(result)) + result
         return packet
 
@@ -74,8 +128,9 @@ class ReadBitsResponseBase(ModbusResponse):
 
         :param data: The packet data to decode
         '''
-        self.byte_count = struct.unpack(">B", data[0])[0]
-        self.bits = unpack_bitstring(data[1:])
+        self._byte_count = struct.unpack(">B", data[0])[0]
+        self._raw_bits = data[1:]
+        self._bits = None
 
     def setBit(self, address, value=1):
         ''' Helper function to set the specified bit
@@ -84,6 +139,7 @@ class ReadBitsResponseBase(ModbusResponse):
         :param value: The value to set the bit to
         '''
         self.bits[address] = (value != 0)
+        self._raw_bits = None
 
     def resetBit(self, address):
         ''' Helper function to set the specified bit to 0
@@ -91,6 +147,7 @@ class ReadBitsResponseBase(ModbusResponse):
         :param address: The bit to reset
         '''
         self.setBit(address, 0)
+        self._raw_bits = None
 
     def getBit(self, address):
         ''' Helper function to get the specified bit's value
