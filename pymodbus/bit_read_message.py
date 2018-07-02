@@ -61,16 +61,17 @@ class ReadBitsResponseBase(ModbusResponse):
         self._bits = None
         self._raw_bits = None
 
-        if values is not None:
+        if values:  # Values is not None or empty
             # Is `values` a list of bools or a byte array?
-            if isinstance(values[0], bool):
+            if isinstance(values[0], (bool, int)):
                 # This is a sequence of bools
-                self._bits = list(values)
-            elif isinstance(values[0], (bytes, int)):
+                self._bits = [bool(v) for v in values]
+            elif isinstance(values[0], (bytes, str)):
                 # This is a raw bit string
-                self._raw_bits = bytes(values)
+                self._raw_bits = values
             else:
-                raise TypeError('values not a bytestring or boolean list')
+                raise TypeError(
+                        'values (%r) not a bytestring or boolean list' % values)
 
     @property
     def bits(self):
